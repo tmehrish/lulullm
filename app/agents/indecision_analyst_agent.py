@@ -49,11 +49,8 @@ retriever = vectorstore.as_retriever()
 # Define retrieve tool that returns the relevant docs + their info
 def retrieve(query: str):
     '''Function to retrieve relevant documents based on a query'''
-    # Use the retriever to get relevant documents
     docs = retriever.invoke(query)
-    # Extract the text content from the documents
     texts = [doc.page_content for doc in docs]
-    # Join the texts into a single string
     return "\n\n".join(texts),docs
 
 
@@ -71,7 +68,7 @@ prompt_template = ('''
             If there isn't any relevant information available, just say "I don't know".'''
         )
 
-
+# Build agent
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 
 indecision_analyst_agent = create_react_agent(
@@ -81,7 +78,7 @@ indecision_analyst_agent = create_react_agent(
     checkpointer=MemorySaver()
 )
 
-# Test the agent with a sample query 
+# Stream agent conversation w/ user
 
 config = {"configurable": {"thread_id": "abc123"}}
 
@@ -104,19 +101,4 @@ while True:
 
     if final_response:
         final_response.pretty_print()
-       
-
-'''
-
-
-# Chat Loop to interact with the user
-while True:
-    user_input = input("User: ")
-    if user_input.lower() == "exit":
-        break
-
-    # Invoke the agent with the user input and the current chat history
-    response = decision_maker_agent.invoke({"input": user_input},config=config)
-    print("Bot:", response["messages"][-1]["content"])
-
-'''
+      
