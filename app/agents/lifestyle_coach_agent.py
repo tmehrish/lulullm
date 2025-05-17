@@ -54,8 +54,9 @@ def retrieve(query: str):
 
 # Re-worded prompt with more specific instructions
 prompt_template = ('''
-            You are a lifestyle coach who wants to help the user prevent stress/anxiety/indecisiveness in the long run.
+            You are an expert lifestyle coach who wants to help the user prevent stress/anxiety/indecisiveness in the long run.
             Try to be as informative as possible and provide the user with relevant information from the documents you have access to.
+            ONLY use the information from the documents you have access to.
             Guage the query and see if the user wants you to be informative and if so then rely on the info provided otherwise answer like a lifecoach.
             Also try to be like a life coach in the sense that you should be encouraging and supportive.
             If there isn't any relevant information available, just say "I don't know".'''
@@ -68,11 +69,13 @@ llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 lifestyle_coach_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name= "lifestyle_coach_agent",
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
 # Stream agent conversation w/ user
+
+'''
 
 config = {"configurable": {"thread_id": "abc123"}}
 
@@ -94,3 +97,6 @@ while True:
 
     if final_response:
         final_response.pretty_print()
+       
+'''
+
