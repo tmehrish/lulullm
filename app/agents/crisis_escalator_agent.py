@@ -1,6 +1,5 @@
-import bs4
-import re
 import logging
+import uuid
 import os
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -21,12 +20,9 @@ key = os.getenv("OPENAI_API_KEY")
 ## INDEXING ##
 
 # Load Documents
-loader = WebBaseLoader(web_paths=["https://asana.com/resources/eisenhower-matrix",
-                                  "https://www.indeed.com/career-advice/career-development/how-to-overcome-indecisiveness",
-                                  "https://www.usebubbles.com/blog/averting-indecision-techniques-for-streamlining-your-decision-making-process?utm_medium=organic&utm_source=www.perplexity.ai&utm_content=blog%252Faverting-indecision-techniques-for-streamlining-your-decision-making-process",
-                                  "https://www.npr.org/2022/03/07/1084907897/any-decision-is-better-than-indecision-try-these-tips-to-actually-choose",
-                                  "https://pmc.ncbi.nlm.nih.gov/articles/PMC5459222/",
-                                  "https://5amjoel.com/weighted-decision-matrix/"],)
+loader = WebBaseLoader(web_paths=["https://www.kansashealthsystem.com/news-room/blog/2020/03/managing-anxiety-during-crisis",
+                                  "https://www.healthline.com/health/grounding-techniques#physical-techniques",
+                                  "https://www.fcc.gov/988-suicide-and-crisis-lifeline",],)
 docs = []
 for doc in loader.lazy_load():
     docs.append(doc)
@@ -48,11 +44,8 @@ retriever = vectorstore.as_retriever()
 # Define retrieve tool that returns the relevant docs + their info
 def retrieve(query: str):
     '''Function to retrieve relevant documents based on a query'''
-    # Use the retriever to get relevant documents
     docs = retriever.invoke(query)
-    # Extract the text content from the documents
     texts = [doc.page_content for doc in docs]
-    # Join the texts into a single string
     return "\n\n".join(texts),docs
 
 
@@ -61,25 +54,24 @@ def retrieve(query: str):
 
 # Re-worded prompt with more specific instructions
 prompt_template = ('''
-            You are a world class decision making expert that helps users make decisions and gives them frameworks to do so.
-            ALWAYS and ONLY use the retrieve tool to find relevant information regarding the user's query.
-            ALWAYS use the retrieve tool provide them with a decision-making framework or technique to help them make a choice.
-            Provide a helpful response using ONLY the retrieved information. 
-            If the user still can't come to a decision prompt them to use one of the decision-making frameworks/matrices that is provided in the retrieved documents. 
+            You are a crisis escalator who only functions when a situation has to be escalated immediately.
+            Your main job is to try to make sure the user is okay.
+            ONLY use the retrieved imformation to answer the user's question.
             If there isn't any relevant information available, just say "I don't know".'''
         )
 
 
+# Build agent
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 
-decision_maker_agent = create_react_agent(
+crisis_escalator_agent = create_react_agent(
     llm,
     tools = [retrieve],
     prompt = prompt_template,
     checkpointer=MemorySaver()
 )
 
-# Test the agent with a sample query 
+# Stream agent conversation w/ user
 
 config = {"configurable": {"thread_id": "abc123"}}
 
@@ -92,7 +84,7 @@ while True:
 
     final_response = None
 
-    for step in decision_maker_agent.stream(
+    for step in crisis_escalator_agent.stream(
         {"messages": [{"role": "user", "content": user_input}]},
         stream_mode="values",
         config=config,
@@ -102,19 +94,4 @@ while True:
     if final_response:
         final_response.pretty_print()
        
-
-
-'''
-
-# Chat Loop to interact with the user
-while True:
-    user_input = input("User: ")
-    if user_input.lower() == "exit":
-        break
-
-    # Invoke the agent with the user input and the current chat history
-    response = decision_maker_agent.invoke({"input": user_input},config=config)
-    print("Bot:", response["messages"][-1]["content"])
-
-'''
 

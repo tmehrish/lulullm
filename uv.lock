@@ -1238,6 +1238,20 @@ wheels = [
 ]
 
 [[package]]
+name = "langgraph-supervisor"
+version = "0.0.21"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph" },
+    { name = "langgraph-prebuilt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/b5/33b6d7f6182353ff96dc5eee9f5c90e878b3fbbb72fabe1ab0731893054a/langgraph_supervisor-0.0.21.tar.gz", hash = "sha256:37ff87db1bc286b62441c5d896fc27e1d628bab0ca583c9f9447117276e0959d", size = 19264, upload-time = "2025-05-07T18:37:47.688Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d3/14/9df4a8f8e07057168e2a9c0f3d1d3c47014cb5366a16aa95bfbcfa5dc531/langgraph_supervisor-0.0.21-py3-none-any.whl", hash = "sha256:8cb50aa3baafce92ca798009cb583910b5a97c71dc8317159e402d7ba42eb89b", size = 14445, upload-time = "2025-05-07T18:37:46.371Z" },
+]
+
+[[package]]
 name = "langsmith"
 version = "0.3.42"
 source = { registry = "https://pypi.org/simple" }
@@ -1267,6 +1281,7 @@ dependencies = [
     { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "langgraph" },
+    { name = "langgraph-supervisor" },
 ]
 
 [package.metadata]
@@ -1278,6 +1293,7 @@ requires-dist = [
     { name = "langchain-community", specifier = ">=0.3.23" },
     { name = "langchain-openai", specifier = ">=0.3.16" },
     { name = "langgraph", specifier = ">=0.4.3" },
+    { name = "langgraph-supervisor", specifier = ">=0.0.21" },
 ]
 
 [[package]]
