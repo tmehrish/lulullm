@@ -48,8 +48,11 @@ retriever = vectorstore.as_retriever()
 # Define retrieve tool that returns the relevant docs + their info
 def retrieve(query: str):
     '''Function to retrieve relevant documents based on a query'''
+    # Use the retriever to get relevant documents
     docs = retriever.invoke(query)
+    # Extract the text content from the documents
     texts = [doc.page_content for doc in docs]
+    # Join the texts into a single string
     return "\n\n".join(texts),docs
 
 
@@ -58,7 +61,7 @@ def retrieve(query: str):
 
 # Re-worded prompt with more specific instructions
 prompt_template = ('''
-            You are a decision making expert.
+            You are a world class decision making expert that helps users make decisions and gives them frameworks to do so.
             ALWAYS and ONLY use the retrieve tool to find relevant information regarding the user's query.
             ALWAYS use the retrieve tool provide them with a decision-making framework or technique to help them make a choice.
             Provide a helpful response using ONLY the retrieved information. 
@@ -67,18 +70,17 @@ prompt_template = ('''
         )
 
 
-# Build agent
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 
 decision_maker_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name="decision_maker_agent",
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
-# Stream the agent conversation w/ user
-
+# Test the agent with a sample query 
+'''
 config = {"configurable": {"thread_id": "abc123"}}
 
 while True:
@@ -99,4 +101,10 @@ while True:
 
     if final_response:
         final_response.pretty_print()
+       
+
+
+'''
+
+
 
