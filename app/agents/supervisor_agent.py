@@ -1,14 +1,15 @@
 from langgraph_supervisor import create_supervisor
-from crisis_escalator_agent import crisis_escalator_agent
+#from crisis_escalator_agent import crisis_escalator_agent
 from lifestyle_coach_agent import lifestyle_coach_agent
-from initial_stress_agent import init_stress_agent
-from decision_maker_agent import decision_maker_agent
-from indecision_analyst_agent import indecision_analyst_agent
+from app.agents.initial_stress_agent import init_stress_agent
+from app.agents.decision_maker_agent import decision_maker_agent
+from app.agents.indecision_analyst_agent import indecision_analyst_agent
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 import os
 from dotenv import load_dotenv
 
+print("Supervisor agent loaded")
 # Load environment variables
 load_dotenv()
 key = os.getenv("OPENAI_API_KEY")
@@ -37,11 +38,10 @@ orchestrator = create_supervisor(
     [init_stress_agent,
      decision_maker_agent,
      indecision_analyst_agent,
-     lifestyle_coach_agent,
-     crisis_escalator_agent],
+     lifestyle_coach_agent],
      model=llm,
      prompt=prompt_template,
-     output_mode="full_history"
+     output_mode="full history",
 )
 
 app = orchestrator.compile(
@@ -51,15 +51,4 @@ app = orchestrator.compile(
 # Test the agent with a sample query 
 
 config = {"configurable": {"thread_id": "abc123"}}
-
-while True:
-    # Get user input
-    user_input = input("You: ")
-    if user_input.lower() == "exit":
-        print("Exiting the chat. Goodbye!")
-        break
-
-    response = app.invoke(user_input, config=config)
-    print(response)
-
 
