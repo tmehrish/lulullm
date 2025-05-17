@@ -46,8 +46,11 @@ retriever = vectorstore.as_retriever()
 # Define retrieve tool that returns the relevant docs + their info
 def retrieve(query: str):
     '''Function to retrieve relevant documents based on a query'''
+    # Use the retriever to get relevant documents
     docs = retriever.invoke(query)
+    # Extract the text content from the documents
     texts = [doc.page_content for doc in docs]
+    # Join the texts into a single string
     return "\n\n".join(texts),docs
 
 
@@ -58,24 +61,25 @@ def retrieve(query: str):
 prompt_template = ('''
             You are one of the top psychologists and behavior therapists in the world and you specialize in stress and anxiety response. 
             When creating a response, consider the source of an user's stress or anxiety and provide a response that is tailored to their needs.
-            Use the retrieve tool to find relevant information regarding the user's query.
-            Provide a helpful response using ONLY the retrieved information. 
+            Use ONLY the retrieve tool to find relevant information regarding the user's query. 
+            At the end of your response, offer your services as a resource to help the user work through their stress/anxiety.
             If there isn't any relevant information available, just say "I don't know".'''
         )
 
-# Build agent
+
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 
 init_stress_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name="initial_stress_agent",
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
 # Set up agent streaming 
-
+'''
 config = {"configurable": {"thread_id": "abc123"}}
+
 
 while True:
     # Get user input
@@ -95,4 +99,6 @@ while True:
 
     if final_response:
         final_response.pretty_print()
+
+'''
 
