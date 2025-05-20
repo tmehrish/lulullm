@@ -77,12 +77,12 @@ llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 indecision_analyst_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name="indecision_analyst_agent",
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
 # Test the agent with a sample query 
-
+'''
 config = {"configurable": {"thread_id": "abc123"}}
 
 while True:
@@ -104,19 +104,5 @@ while True:
 
     if final_response:
         final_response.pretty_print()
-       
-
-'''
-
-
-# Chat Loop to interact with the user
-while True:
-    user_input = input("User: ")
-    if user_input.lower() == "exit":
-        break
-
-    # Invoke the agent with the user input and the current chat history
-    response = decision_maker_agent.invoke({"input": user_input},config=config)
-    print("Bot:", response["messages"][-1]["content"])
 
 '''

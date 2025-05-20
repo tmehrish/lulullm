@@ -1,9 +1,9 @@
 from langgraph_supervisor import create_supervisor
-#from crisis_escalator_agent import crisis_escalator_agent
 from lifestyle_coach_agent import lifestyle_coach_agent
-from app.agents.initial_stress_agent import init_stress_agent
-from app.agents.decision_maker_agent import decision_maker_agent
-from app.agents.indecision_analyst_agent import indecision_analyst_agent
+from initial_stress_agent import init_stress_agent
+from decision_maker_agent import decision_maker_agent
+from indecision_analyst_agent import indecision_analyst_agent
+from general_chat_agent import general_chat_agent
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 import os
@@ -26,29 +26,36 @@ prompt_template = ('''
                     - Decision Maker Agent : If the user is experiencing indecision and they need guidance in making a decision
                     - Indecision Analyst Agent: If the user wants to find the cause of their indecison and overcome it or if they want to find the root cause of a problem
                     - Lifestyle Coach Agent: If the user wants to reduce stress/anxiety/indecision in the long run and they want to be informed about it
-                    - Crisis Escalator Agent: If the user is in a crisis and they need immediate help
                     - General Chat Agent: If the user is asking a supplemental question that doesn't fit into any of the above categories but is needed for context for a follow up or if the user wants a general convo
             
             Also, tell the agents to answer the question in a way that is digestible for the user.
                    ''')
 
-
+print("Template created")
 
 orchestrator = create_supervisor(
     [init_stress_agent,
      decision_maker_agent,
      indecision_analyst_agent,
-     lifestyle_coach_agent],
+     lifestyle_coach_agent,
+     general_chat_agent,],
      model=llm,
      prompt=prompt_template,
-     output_mode="full history",
+     output_mode="last_message",
 )
+print("Supervisor agent created")
 
 app = orchestrator.compile(
     checkpointer=MemorySaver(),
 )
 
-# Test the agent with a sample query 
+config = {"thread_id": 123456}
+while True:
+    user_input = input("User: ")
+    if user_input.lower() == 'exit':
+        break
+    response = app.invoke({"messages":user_input}, config=config)
+    final_response = response["messages"][-1]
+    final_response.pretty_print()
 
-config = {"configurable": {"thread_id": "abc123"}}
 

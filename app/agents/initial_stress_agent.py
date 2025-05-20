@@ -72,13 +72,14 @@ llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 init_stress_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name="initial_stress_agent",
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
 # Set up agent streaming 
-
+'''
 config = {"configurable": {"thread_id": "abc123"}}
+
 
 while True:
     # Get user input
@@ -99,3 +100,4 @@ while True:
     if final_response:
         final_response.pretty_print()
 
+'''

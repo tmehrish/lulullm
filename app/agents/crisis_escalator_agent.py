@@ -67,12 +67,12 @@ llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 crisis_escalator_agent = create_react_agent(
     llm,
     tools = [retrieve],
+    name='crisis_escalator_agent',
     prompt = prompt_template,
-    checkpointer=MemorySaver()
 )
 
 # Stream agent conversation w/ user
-
+'''
 config = {"configurable": {"thread_id": "abc123"}}
 
 while True:
@@ -94,4 +94,4 @@ while True:
     if final_response:
         final_response.pretty_print()
        
-
+'''
