@@ -7,6 +7,7 @@ from langchain.schema import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
+from storage.models import SessionMetadata, UserSession
 
 
 # Load environment variables
@@ -37,7 +38,7 @@ prompt_template = '''
 # Build agent
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
 
-extractor_agent = create_react_agent(
+metadata_agent = create_react_agent(
     llm,
     tools=[],
     prompt=prompt_template,
