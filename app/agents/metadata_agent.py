@@ -1,4 +1,6 @@
 import os
+import uuid
+import logging
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -18,17 +20,23 @@ load_dotenv()
 openai_key = os.getenv("OPENAI_API_KEY")
 mongo_key = os.getenv("MONGO_URI")
 
-
+# Initialize MongoDB connection
+async def init_database():
+    client = MongoClient(mongo_key)
+    await init_beanie(
+        database=client.lulullm,
+        document_models=[UserSession]
+    )
 
 prompt_template = '''
-        You are an extractor agent that takes a chat history
-        and extracts the following information based on the conversation:
+        You are an extractor agent that takes a chat history and metadata
+        and updates the metadata by extracting info from the chat history such as:
         - Stress triggers
         - Indecisiveness triggers
         - Preferred tools
         - Decision patterns
         - Other relevant information
-        then returns it in a format similar to this:
+        then returns it in a format similar to this (the metadata):
         {
             "user_id": "yash_khanna",
             "session_id": "123456",
@@ -41,7 +49,7 @@ prompt_template = '''
     '''
 
 # Build agent
-llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=key)
+llm = ChatOpenAI(model_name="gpt-4o", temperature=0,api_key=os.getenv(openai_key))
 
 metadata_agent = create_react_agent(
     llm,
@@ -49,5 +57,34 @@ metadata_agent = create_react_agent(
     prompt=prompt_template,
     checkpointer=MemorySaver(),
 )
+
+session_manager = SessionManager()
+
+async def process_history(user_id:str, history: str):
+
+    metadata = await session_manager.get_metadata(user_id)
+    # Create context-aware input
+    context = f"""
+    User Metadata:
+    {metadata.model_dump_json()}
+    
+    Chat History:
+    {history}
+    """
+
+    config = {"configurable":
+              {"thread_id": str(uuid())
+               }
+               }
+
+    response = await metadata_agent.ainvoke({"messages": context}, config=config)
+    logging.info(f"Metadata {response} extracted")
+
+    await session_manager.add_metadata(user_id, **response)
+    logging.info(f"Metadata {response} updated")
+    
+
+
+
 
 

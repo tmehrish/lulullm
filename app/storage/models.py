@@ -1,35 +1,20 @@
-from pydantic import BaseModel
 from beanie import Document
 from datetime import datetime, timedelta
-import asyncio
+from typing import List, Dict
 
-class SessionMetadata(BaseModel):
+class UserMetadata(Document):  # Inherit from Beanie's Document
     user_id: str
     session_id: str
-    stress_triggers: list[str] = []
-    indecisiveness_triggers: list[str] = []
-    preferred_tools: list[str] = []
-    decision_patterns: dict = {}
+    stress_triggers: List[str] = []
+    indecisiveness_triggers: List[str] = []
+    preferred_tools: List[str] = []
+    decision_patterns: Dict = {}
     last_interaction: datetime = datetime.now()
 
-class UserSession(Document):
-    user_id: str
-    metadata: SessionMetadata
-    raw_chat: str
-    timestamp: datetime = datetime.now()
-
     class Settings:
-        name = "user_sessions"
+        collection = "user_metadata"  # Specify the MongoDB collection name
 
 
-async def session_cleanup_task():
-    while True:
-        await asyncio.sleep(300)  # Every 5 minutes
-        stale_sessions = await UserSession.find(
-            UserSession.timestamp < datetime.now() - timedelta(minutes=30)
-        ).to_list()
-        
-        for session in stale_sessions:
-            await session.delete()
+
 
 
