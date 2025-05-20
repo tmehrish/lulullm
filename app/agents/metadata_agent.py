@@ -5,14 +5,19 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.schema import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.base import Checkpoint
+from pymongo import MongoClient
+from beanie import init_beanie
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
-from storage.models import SessionMetadata, UserSession
-
+from app.storage.models import SessionMetadata, UserSession
+from app.storage.session_managing import SessionManager
 
 # Load environment variables
 load_dotenv()
-key = os.getenv("OPENAI_API_KEY")
+openai_key = os.getenv("OPENAI_API_KEY")
+mongo_key = os.getenv("MONGO_URI")
+
 
 
 prompt_template = '''
