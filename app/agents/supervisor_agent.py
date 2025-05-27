@@ -1,13 +1,15 @@
-from langgraph_supervisor import create_supervisor
-from lifestyle_coach_agent import lifestyle_coach_agent
-from initial_stress_agent import init_stress_agent
-from decision_maker_agent import decision_maker_agent
-from indecision_analyst_agent import indecision_analyst_agent
-from general_chat_agent import general_chat_agent
-from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import MemorySaver
 import os
 from dotenv import load_dotenv
+from langgraph_supervisor import create_supervisor
+from app.agents.lifestyle_coach_agent import lifestyle_coach_agent
+from app.agents.initial_stress_agent import init_stress_agent
+from app.agents.decision_maker_agent import decision_maker_agent
+from app.agents.indecision_analyst_agent import indecision_analyst_agent
+from app.agents.general_chat_agent import general_chat_agent
+from app.storage.session_managing import MetadataManager
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
+
 
 print("Supervisor agent loaded")
 # Load environment variables
@@ -33,7 +35,7 @@ prompt_template = ('''
 
 print("Template created")
 
-orchestrator = create_supervisor(
+supervisor = create_supervisor(
     [init_stress_agent,
      decision_maker_agent,
      indecision_analyst_agent,
@@ -41,23 +43,24 @@ orchestrator = create_supervisor(
      general_chat_agent,],
      model=llm,
      prompt=prompt_template,
-     output_mode="last_message",
+     output_mode="last_message"
 )
 print("Supervisor agent created")
 
-app = orchestrator.compile(
+orchestrator = supervisor.compile(
     checkpointer=MemorySaver(),
 )
-
+chat_history = {}
 config = {"thread_id": 123456}
+
 while True:
     user_input = input("User: ")
     if user_input.lower() == 'exit':
         break
-    response = app.invoke({"messages":user_input}, config=config)
-    final_response = response["messages"][-1]
-    final_response.pretty_print()
-
-
+    response = orchestrator.invoke({"messages":user_input}, config=config)
+    # Extract the last message from the response using dot notation
+    # since its a python obj w/ attributes not specifically a dict
+    final_response = response["messages"][-1].content
+    chat_history[user_input] = final_response
 
 
