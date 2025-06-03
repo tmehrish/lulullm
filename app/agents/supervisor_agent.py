@@ -9,6 +9,7 @@ from app.agents.general_chat_agent import general_chat_agent
 from app.storage.session_managing import MetadataManager
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import AIMessage
 
 
 print("Supervisor agent loaded")
@@ -52,15 +53,23 @@ orchestrator = supervisor.compile(
 )
 chat_history = {}
 config = {"thread_id": 123456}
-
+'''
 while True:
     user_input = input("User: ")
     if user_input.lower() == 'exit':
         break
     response = orchestrator.invoke({"messages":user_input}, config=config)
-    # Extract the last message from the response using dot notation
-    # since its a python obj w/ attributes not specifically a dict
-    final_response = response["messages"][-1].content
-    chat_history[user_input] = final_response
+    # Extract the content of the AIMessage
+    ai_message_content = None
+    for message in response['messages']:
+        if isinstance(message, AIMessage) and message.content:
+            ai_message_content = message.content
+            break
+    
+    if ai_message_content:
+        print(f"Supervisor: {ai_message_content}")
+    else:
+        print("Supervisor: No relevant AIMessage found.")
+    chat_history[user_input] = response
 
-
+'''
