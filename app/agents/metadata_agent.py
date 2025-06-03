@@ -58,9 +58,8 @@ metadata_agent = create_react_agent(
     checkpointer=MemorySaver(),
 )
 
-metadata_manager = MetadataManager()
 
-async def process_history(user_id:str, history: str):
+async def process_history(user_id:str, history: str, metadata_manager: MetadataManager):
 
     metadata = await metadata_manager.get_metadata(user_id)
     # Create context-aware input
@@ -73,12 +72,13 @@ async def process_history(user_id:str, history: str):
     """
 
     config = {"configurable":
-              {"thread_id": str(uuid())
-               }
-               }
+              {"thread_id": str(uuid.uuid4())}}
 
     response = await metadata_agent.ainvoke({"messages": context}, config=config)
     logging.info(f"Metadata {response} extracted")
+    print(f"Metadata {response} extracted")
 
     await metadata_manager.add_metadata(user_id, **response)
     logging.info(f"Metadata {response} updated")
+    print(f"Metadata {response} updated")
+
