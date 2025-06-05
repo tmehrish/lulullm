@@ -1,4 +1,3 @@
-
 import logging
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,7 +7,7 @@ from app.agents.supervisor_agent import orchestrator
 from app.agents.metadata_agent import metadata_agent, process_history
 from app.agents.supervisor_agent import orchestrator
 from motor.motor_asyncio import AsyncIOMotorClient
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 from pydantic import BaseModel
 from uuid import uuid4
 from passlib.context import CryptContext
@@ -90,9 +89,10 @@ async def signup(user: UserCreate):
 
 # Sign-in endpoint
 chat_history = {}
+config = {}
 @app.post("/signin", response_model=UserResponse)
 async def signin(user: UserCreate):
-    global chat_history
+    global chat_history, config
     # Check if username exists
     existing_user = await user_collection.find_one({"username": user.username})
     if not existing_user:
@@ -103,6 +103,7 @@ async def signin(user: UserCreate):
         raise HTTPException(status_code=400, detail="Invalid username or password")
     
     chat_history['user_id'] = existing_user['user_id']
+    config['thread_id'] = str(uuid4())
     print(f"User's chat history {chat_history} loaded")
     print(chat_history['user_id'])
     return {"username": existing_user["username"], "user_id": existing_user["user_id"]}
@@ -110,8 +111,7 @@ async def signin(user: UserCreate):
 # Invoke endpoint
 @app.post("/invoke")
 async def invoke(user_input: str):
-    global chat_history
-    config = {"thread_id": str(uuid4())}
+    global chat_history, config
     user_id = chat_history["user_id"]
     metadata = await metadata_manager.get_metadata(user_id)
     # Create context-aware input
@@ -125,16 +125,32 @@ async def invoke(user_input: str):
     response = await orchestrator.ainvoke({"messages": context}, config=config)
     # Extract the content of the AIMessage
     ai_message_content = None
-    for message in response['messages']:
-        if isinstance(message, AIMessage) and message.content:
-            ai_message_content = message.content
-            break
+    tool_message_count = 0
+    second_last_tool_message_index = None
+
+    # Iterate through messages in reverse order to find the second-to-last ToolMessage
+    for i, message in enumerate(reversed(response['messages'])):
+        if isinstance(message, ToolMessage):
+            tool_message_count += 1
+            if tool_message_count == 2:  # Found the second-to-last ToolMessage
+                # Calculate the index of the second-to-last ToolMessage in the original order
+                second_last_tool_message_index = len(response['messages']) - 1 - i
+                break
+
+    # If the second-to-last ToolMessage is found, get the next message
+    if second_last_tool_message_index is not None:
+        next_message_index = second_last_tool_message_index + 1
+        if next_message_index < len(response['messages']):
+            next_message = response['messages'][next_message_index]
+            if isinstance(next_message, AIMessage):  # Ensure it's an AIMessage
+                ai_message_content = next_message.content
     
+    # Output the result
     if ai_message_content:
-        chat_history[user_input] = ai_message_content
         return ai_message_content
     else:
-        print("Supervisor: No relevant AIMessage found.")
+        return ("No response generated.")
+
 
 # Track user activity
 user_activity = {"last_activity": datetime.now(), "is_idle": False}
