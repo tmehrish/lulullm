@@ -1,11 +1,12 @@
 import os
 import uuid
 import logging
+import json
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.base import Checkpoint
 from pymongo import MongoClient
@@ -14,6 +15,9 @@ from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 from app.storage.models import UserMetadata
 from app.storage.session_managing import MetadataManager
+
+
+# Serves as cross-thread memory setup 
 
 # Load environment variables
 load_dotenv()
@@ -77,8 +81,27 @@ async def process_history(user_id:str, history: str, metadata_manager: MetadataM
     response = await metadata_agent.ainvoke({"messages": context}, config=config)
     logging.info(f"Metadata {response} extracted")
     print(f"Metadata {response} extracted")
+    # Extract the AIMessage from the response
+    try:
+        messages = response.get("messages", [])
+        ai_message = next(
+            (message for message in messages if isinstance(message, AIMessage)), None
+        )
+        if ai_message:
+            updated_message = json.loads(ai_message.content)
+            print("Extracted AIMessage content:")
+            print(updated_message)     
+        else:
+            print("No AIMessage found in the response.")
+    except Exception as e:
+        logging.error(f"Error extracting AIMessage: {e}")
+        print(f"Error extracting AIMessage: {e}")
+    try:
 
-    await metadata_manager.add_metadata(user_id, **response)
-    logging.info(f"Metadata {response} updated")
-    print(f"Metadata {response} updated")
-
+        await metadata_manager.add_metadata(user_id, updated_message)
+        logging.info(f"Metadata {updated_message} updated")
+        print(f"Metadata {updated_message} updated")
+    except Exception as e:
+        logging.error(f"Error updating metadata: {e}")
+        print(f"Error updating metadata: {e}")
+        raise e
