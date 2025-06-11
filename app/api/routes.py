@@ -147,6 +147,7 @@ async def invoke(user_input: str):
     
     # Output the result
     if ai_message_content:
+        chat_history[user_input] = ai_message_content
         return ai_message_content
     else:
         return ("No response generated.")
