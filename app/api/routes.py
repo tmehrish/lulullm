@@ -114,10 +114,11 @@ async def invoke(user_input: str):
     global chat_history, config
     user_id = chat_history["user_id"]
     metadata = await metadata_manager.get_metadata(user_id)
+    print(f"Metadata for user {user_id}: {metadata}")
     # Create context-aware input
     context = f"""
     User Metadata:
-    {metadata.model_dump_json()}
+    {metadata.model_dump()}
     
     Chat History:
     {user_input}
