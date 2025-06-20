@@ -8,8 +8,10 @@ class UserMetadata(Document):  # Inherit from Beanie's Document
     stress_triggers: List[str] = []
     indecisiveness_triggers: List[str] = []
     preferred_tools: List[str] = []
-    decision_patterns: Dict = {}
+    decision_patterns: List[str] = []
     last_interaction: datetime = datetime.now()
-
+    
     class Settings:
         collection = "user_metadata"  # Specify the MongoDB collection name
+
+
