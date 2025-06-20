@@ -2,6 +2,7 @@ import os
 import uuid
 import logging
 import json
+import ast
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -40,15 +41,15 @@ prompt_template = '''
         - Preferred tools
         - Decision patterns
         - Other relevant information
-        then returns it in a format similar to this (the metadata):
+        then returns it looking like this (the original metadata) in a Python dictionary format:
         {
-            "user_id": "yash_khanna",
-            "session_id": "123456",
-            "stress_triggers": ["perfectionism", "time pressure"],
-            "indecisiveness_triggers": ["fear of failure", "overthinking"],
-            "preferred_tools": ["weighted scoring", "body scan"],
-            "decision_patterns": ["avoids financial decisions"],
-            "last_interaction": "2025-05-16T16:03:00Z"
+            'user_id': 'yash_khanna',
+            'session_id': '123456',
+            'stress_triggers': ['perfectionism', 'time pressure'],
+            'indecisiveness_triggers': ['fear of failure', 'overthinking'],
+            'preferred_tools': ['weighted scoring', 'body scan'],
+            'decision_patterns': ['avoids financial decisions'],
+            'last_interaction': '2025-05-16T16:03:00Z'
         }
     '''
 
@@ -69,8 +70,8 @@ async def process_history(user_id:str, history: str, metadata_manager: MetadataM
     # Create context-aware input
     context = f"""
     User Metadata:
-    {metadata.model_dump_json()}
-    
+    {metadata.model_dump()}
+
     Chat History:
     {history}
     """
@@ -81,26 +82,37 @@ async def process_history(user_id:str, history: str, metadata_manager: MetadataM
     response = await metadata_agent.ainvoke({"messages": context}, config=config)
     logging.info(f"Metadata {response} extracted")
     print(f"Metadata {response} extracted")
+    
+    new_metadata = None
     # Extract the AIMessage from the response
     try:
         messages = response.get("messages", [])
         ai_message = next(
             (message for message in messages if isinstance(message, AIMessage)), None
         )
-        if ai_message:
-            updated_message = json.loads(ai_message.content)
-            print("Extracted AIMessage content:")
-            print(updated_message)     
-        else:
-            print("No AIMessage found in the response.")
-    except Exception as e:
-        logging.error(f"Error extracting AIMessage: {e}")
-        print(f"Error extracting AIMessage: {e}")
+        print(f"AIMessage content type: {type(ai_message.content)}")
+        print(f"AIMessage content: {ai_message.content}")
+        cleaned_content = ai_message.content.strip("```python").strip("```").strip()
+        llm_response = ast.literal_eval(cleaned_content)
+        print(f"LLM response: {llm_response}")
+        new_metadata = UserMetadata(
+            user_id=llm_response["user_id"],
+            session_id=llm_response["session_id"],
+            stress_triggers=llm_response["stress_triggers"],
+            indecisiveness_triggers=llm_response["indecisiveness_triggers"],
+            preferred_tools=llm_response["preferred_tools"],
+            decision_patterns=llm_response["decision_patterns"],
+            last_interaction=llm_response["last_interaction"]
+        )
+        print(f"New metadata created: {new_metadata}")
+    except (ValueError, SyntaxError) as e:
+        logging.error(f"Error parsing AIMessage content: {e}")
+        print(f"Error parsing AIMessage content: {e}")
+        raise ValueError("Failed to parse AIMessage content into metadata.")
     try:
-
-        await metadata_manager.add_metadata(user_id, updated_message)
-        logging.info(f"Metadata {updated_message} updated")
-        print(f"Metadata {updated_message} updated")
+        print("Calling add_metadata")  
+        await metadata_manager.add_metadata(user_id, new_metadata)
+        print(f"Metadata {new_metadata} updated")
     except Exception as e:
         logging.error(f"Error updating metadata: {e}")
         print(f"Error updating metadata: {e}")
