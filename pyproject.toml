@@ -5,13 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "bcrypt>=4.3.0",
     "beanie>=1.29.0",
     "bs4>=0.0.2",
     "chromadb>=1.0.8",
     "dotenv>=0.9.9",
+    "fastapi>=0.115.9",
     "langchain>=0.3.25",
     "langchain-community>=0.3.23",
     "langchain-openai>=0.3.16",
     "langgraph>=0.4.3",
     "langgraph-supervisor>=0.0.21",
+    "motor>=3.7.1",
+    "passlib>=1.7.4",
+    "sqlalchemy>=2.0.40",
+    "uvicorn>=0.34.2",
 ]
