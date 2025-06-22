@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.base import Checkpoint
 from pymongo import MongoClient
 from beanie import init_beanie, PydanticObjectId
-from app.storage.models import UserMetadata
+from app.backend.storage.models import UserMetadata
 import asyncio
 import os
 from datetime import datetime
