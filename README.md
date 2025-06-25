@@ -1,6 +1,6 @@
 # LuluLLM
 
-An intelligent AI assistant with specialized agents for stress management, decision making, lifestyle coaching, and general conversation.
+I was inspired by those close to me to create a chatbot that specialized in stress and indecision aid, among other things. Instead of creating a simple GPT wrapper, I decided to implement a RAG pipeline in each one of the available agents listed below. The documents that I used for this ranged from informational articles online to scholarly studies on a certain topic. While the usage of RAG didn't augment the llm as much as I had wanted it to when comparing my chatbot to ChatGPT, it was still a great introductory learning experience into RAG. (Once I finally get this deployed I plan on revisiting the RAG pipeline that I built to see if I can perform some kind of query transformation, routing, or another practice to augment the agent a bit more). To augment my multi-agent chatbot a bit more, I decided to create an agent that takes in the current chat history and spits out user metadata including stress triggers, indecision patterns, favored frameworks, etc. This metadata, along with the user's log in credentials, were saved to a MongoDB database for which I could then retrieve the user metadata and parse it into the context when invoking my chatbot. As of right now, I'm still troubleshooting errors with my backend deployment through Railway, but once that gets fixed I'll update this ReadMe with the url to LuluLLM!
 
 ## 🤖 Available Agents
 
