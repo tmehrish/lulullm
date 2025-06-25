@@ -17,6 +17,7 @@ import os
 import uvicorn
 import asyncio
 from beanie import init_beanie
+import ssl
 
 # Load environment variables
 load_dotenv()
