@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
-const API_BASE_URL = 'lulullm-production.up.railway.app';
+const API_BASE_URL = 'lulullm-production-e0a1.up.railway.app';
 
 function App() {
   const [user, setUser] = useState(null);
