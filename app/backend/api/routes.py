@@ -73,8 +73,11 @@ def read_root():
     return {"message": "Welcome to the API!"}
 
 # Sign-up endpoint
+chat_history = {}
+config = {}
 @app.post("/signup", response_model=UserResponse)
 async def signup(user: UserCreate):
+    global chat_history, config
     # Check if username already exists
     existing_user = await user_collection.find_one({"username": user.username})
     if existing_user:
@@ -85,11 +88,13 @@ async def signup(user: UserCreate):
     user_id = str(uuid4())
     new_user = {"username": user.username, "password_hash": hashed_password, "user_id": user_id}
     await user_collection.insert_one(new_user)
+    chat_history['user_id'] = existing_user['user_id']
+    config['thread_id'] = str(uuid4())
+    print(f"User's chat history {chat_history} loaded")
+    print(chat_history['user_id'])
     return {"username": user.username, "user_id": user_id}
 
 # Sign-in endpoint
-chat_history = {}
-config = {}
 @app.post("/signin", response_model=UserResponse)
 async def signin(user: UserCreate):
     global chat_history, config
