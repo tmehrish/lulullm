@@ -26,9 +26,9 @@ MONGO_URL = os.getenv("MONGO_URI")
 # MongoDB setup
 client = AsyncIOMotorClient(
     MONGO_URL,
-    ssl=True,
-    ssl_cert_reqs=ssl.CERT_NONE,
+    tls=True,
     tlsAllowInvalidCertificates=True,
+    tlsAllowInvalidHostnames=True,
     serverSelectionTimeoutMS=5000,
     connectTimeoutMS=5000,
     maxPoolSize=1,
