@@ -23,7 +23,16 @@ load_dotenv()
 MONGO_URL = os.getenv("MONGO_URI")
 
 # MongoDB setup
-client = AsyncIOMotorClient(MONGO_URL)
+client = AsyncIOMotorClient(
+    MONGO_URL,
+    ssl=True,
+    ssl_cert_reqs=ssl.CERT_NONE,
+    tlsAllowInvalidCertificates=True,
+    serverSelectionTimeoutMS=5000,
+    connectTimeoutMS=5000,
+    maxPoolSize=1,
+    retryWrites=False
+)
 db = client["lulullm"]
 user_collection = db["users"]
 
